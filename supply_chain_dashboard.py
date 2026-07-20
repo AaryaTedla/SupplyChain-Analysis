@@ -3,7 +3,8 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
-import pickle, os
+import os
+import pickle
 
 st.set_page_config(
     page_title="DataCo Supply Chain Dashboard",
@@ -99,13 +100,23 @@ SEGMENT_STATS = {
 @st.cache_resource
 def load_models():
     base = os.path.dirname(os.path.abspath(__file__))
-    with open(os.path.join(base, "delivery_model.pkl"), "rb") as f:
+    delivery_path = os.path.join(base, "delivery_model.pkl")
+    demand_path = os.path.join(base, "demand_model.pkl")
+    if not os.path.isfile(delivery_path) or not os.path.isfile(demand_path):
+        raise FileNotFoundError(
+            "delivery_model.pkl and demand_model.pkl must be next to this script"
+        )
+    with open(delivery_path, "rb") as f:
         delivery = pickle.load(f)
-    with open(os.path.join(base, "demand_model.pkl"), "rb") as f:
+    with open(demand_path, "rb") as f:
         demand = pickle.load(f)
     return delivery, demand
 
-delivery_model, demand_model = load_models()
+try:
+    delivery_model, demand_model = load_models()
+except Exception as exc:
+    st.error(f"Unable to load the prediction models: {exc}")
+    st.stop()
 DELIVERY_FEATURES = list(delivery_model.feature_names_in_)
 DEMAND_FEATURES   = list(demand_model.feature_names_in_)
 
@@ -134,8 +145,17 @@ def encode_df_for_model(df, features):
             continue
         if col in static_maps:
             tmp[col] = tmp[col].map(static_maps[col]).fillna(0).astype(int)
-        elif col in high_card and tmp[col].dtype == object:
-            tmp[col] = pd.factorize(tmp[col])[0]
+        elif col in high_card and not pd.api.types.is_numeric_dtype(tmp[col]):
+            # LabelEncoder, used during training, assigns codes in sorted order.
+            # Sorting also makes results independent of CSV row order.
+            values = tmp[col].fillna("").astype(str)
+            classes = sorted(values.unique())
+            tmp[col] = values.map({value: code for code, value in enumerate(classes)})
+
+        # Uploaded CSVs occasionally contain numeric fields as strings. Convert
+        # them here so sklearn receives the all-numeric matrix it expects.
+        if not pd.api.types.is_numeric_dtype(tmp[col]):
+            tmp[col] = pd.to_numeric(tmp[col], errors="coerce")
 
     return tmp[features].fillna(0)
 
@@ -247,13 +267,40 @@ if not uploaded_file:
 
 @st.cache_data
 def load_data(f):
-    df = pd.read_csv(f, encoding="latin1")
+    df = pd.read_csv(f, encoding="latin1", low_memory=False)
+    df.columns = df.columns.str.strip().str.removeprefix("\ufeff")
     for col in ["order date (DateOrders)", "shipping date (DateOrders)"]:
         if col in df.columns:
             df[col] = pd.to_datetime(df[col], errors="coerce")
     return df
 
-df = load_data(uploaded_file)
+try:
+    df = load_data(uploaded_file)
+except (pd.errors.ParserError, UnicodeError, ValueError) as exc:
+    st.error(f"The uploaded file could not be read as a CSV: {exc}")
+    st.stop()
+
+if df.empty:
+    st.warning("The uploaded CSV contains no data rows.")
+    st.stop()
+
+required_columns = {"Sales", "Product Price", "Shipping Mode"}
+missing_required = sorted(required_columns - set(df.columns))
+if missing_required:
+    st.error(
+        "This file is not a supported supply-chain dataset. Missing required "
+        f"column(s): {', '.join(missing_required)}."
+    )
+    st.stop()
+
+model_columns = set(DELIVERY_FEATURES) | set(DEMAND_FEATURES)
+missing_model_columns = sorted(model_columns - set(df.columns))
+if missing_model_columns:
+    st.warning(
+        f"{len(missing_model_columns)} engineered model features are absent and "
+        "will use neutral defaults. For reliable predictions, upload the full "
+        "merged/engineered dataset."
+    )
 
 with st.sidebar:
     st.markdown("### Filters")
@@ -267,6 +314,22 @@ fdf = df.copy()
 if sel_market   != "All" and "Market" in fdf.columns:        fdf = fdf[fdf["Market"] == sel_market]
 if sel_category != "All" and "Category Name" in fdf.columns: fdf = fdf[fdf["Category Name"] == sel_category]
 if sel_segment  != "All" and "Customer Segment" in fdf.columns: fdf = fdf[fdf["Customer Segment"] == sel_segment]
+
+if fdf.empty:
+    st.warning("No orders match this filter combination. Adjust the sidebar filters.")
+    st.stop()
+
+# Encode and predict once on the complete upload. Besides avoiding four costly
+# model runs on every Streamlit rerender, this keeps high-cardinality category
+# encodings stable when sidebar filters change.
+with st.spinner("Running prediction models…"):
+    all_delivery_preds, all_delivery_probs = run_delivery_predictions(df)
+    all_demand_preds = run_demand_predictions(df)
+
+prediction_positions = df.index.get_indexer(fdf.index)
+preds_d_shared = all_delivery_preds[prediction_positions]
+probs_d_shared = all_delivery_probs[prediction_positions]
+preds_q_shared = all_demand_preds[prediction_positions]
 
 st.markdown(f"**{len(fdf):,} orders** after filters")
 st.markdown("---")
@@ -370,8 +433,7 @@ with tabs[1]:
     st.caption("RandomForestClassifier · predicts late delivery risk (1 = Late, 0 = On Time)")
     st.markdown("---")
 
-    with st.spinner("Running delivery predictions…"):
-        preds_d, probs_d = run_delivery_predictions(fdf)
+    preds_d, probs_d = preds_d_shared, probs_d_shared
 
     fdf_d = fdf.copy()
     fdf_d["Predicted_Late_Risk"]   = preds_d
@@ -442,8 +504,7 @@ with tabs[2]:
     st.caption("RandomForestRegressor · predicts order item quantity")
     st.markdown("---")
 
-    with st.spinner("Running demand predictions…"):
-        preds_q = run_demand_predictions(fdf)
+    preds_q = preds_q_shared
 
     fdf_q = fdf.copy()
     fdf_q["Predicted_Quantity"] = preds_q
@@ -781,9 +842,8 @@ with tabs[4]:
     st.markdown("---")
 
     # ── Run both models on full filtered dataset ─────────────────
-    with st.spinner("Running both models on filtered data…"):
-        preds_d_eng, probs_d_eng = run_delivery_predictions(fdf)
-        preds_q_eng              = run_demand_predictions(fdf)
+    preds_d_eng, probs_d_eng = preds_d_shared, probs_d_shared
+    preds_q_eng = preds_q_shared
 
     fdf_eng = fdf.copy()
     fdf_eng["Late_Risk_Prob"]    = probs_d_eng

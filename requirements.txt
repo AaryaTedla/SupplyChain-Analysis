@@ -1,0 +1,7 @@
+streamlit>=1.32,<2
+pandas>=2.0,<3
+numpy>=1.24,<3
+plotly>=5.18,<7
+# The bundled pickle models were trained with this release. Pickled sklearn
+# estimators are not guaranteed to be compatible across sklearn versions.
+scikit-learn==1.8.0
