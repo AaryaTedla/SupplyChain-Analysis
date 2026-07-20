@@ -364,7 +364,7 @@ with tabs[0]:
             ts["order date (DateOrders)"] = ts["order date (DateOrders)"].astype(str)
             fig = px.area(ts, x="order date (DateOrders)", y="Sales", color_discrete_sequence=["#3b82f6"], template="plotly_dark")
             fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=0,r=0,t=10,b=0), height=270)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
     with c2:
         st.markdown('<p class="sec-hdr">Delivery Status</p>', unsafe_allow_html=True)
         if "Delivery Status" in fdf.columns:
@@ -372,7 +372,7 @@ with tabs[0]:
             ds.columns = ["Status","Count"]
             fig = px.pie(ds, names="Status", values="Count", color_discrete_sequence=px.colors.sequential.Blues_r, hole=0.5, template="plotly_dark")
             fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", margin=dict(l=0,r=0,t=10,b=0), height=270, legend=dict(font=dict(size=10)))
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
 
     c3,c4 = st.columns(2)
     with c3:
@@ -382,14 +382,14 @@ with tabs[0]:
             fig = px.bar(cat, x="Order Profit Per Order", y="Category Name", orientation="h",
                          color="Order Profit Per Order", color_continuous_scale="Blues", template="plotly_dark")
             fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=0,r=0,t=10,b=0), height=320, coloraxis_showscale=False)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
     with c4:
         st.markdown('<p class="sec-hdr">Sales by Market</p>', unsafe_allow_html=True)
         if "Market" in fdf.columns and "Sales" in fdf.columns:
             mkt = fdf.groupby("Market")["Sales"].sum().sort_values(ascending=False).reset_index()
             fig = px.bar(mkt, x="Market", y="Sales", color="Sales", color_continuous_scale="Blues", template="plotly_dark")
             fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=0,r=0,t=10,b=0), height=320, coloraxis_showscale=False)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
 
     c5,c6 = st.columns(2)
     with c5:
@@ -399,7 +399,7 @@ with tabs[0]:
             sm_c.columns = ["Mode","Count"]
             fig = px.bar(sm_c, x="Mode", y="Count", color="Count", color_continuous_scale="Blues", template="plotly_dark")
             fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=0,r=0,t=10,b=0), height=280, coloraxis_showscale=False)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
     with c6:
         st.markdown('<p class="sec-hdr">Sales vs Profit</p>', unsafe_allow_html=True)
         if "Sales" in fdf.columns and "Order Profit Per Order" in fdf.columns:
@@ -409,7 +409,7 @@ with tabs[0]:
                              opacity=0.5, template="plotly_dark",
                              color_discrete_sequence=px.colors.qualitative.Set2)
             fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=0,r=0,t=10,b=0), height=280)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
 
     st.markdown('<p class="sec-hdr">Top 10 Products by Sales</p>', unsafe_allow_html=True)
     if "Product Name" in fdf.columns and "Sales" in fdf.columns:
@@ -419,10 +419,10 @@ with tabs[0]:
         fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
                           margin=dict(l=0,r=0,t=10,b=0), height=320,
                           coloraxis_showscale=False, yaxis=dict(autorange="reversed"))
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
     with st.expander("🔍 Raw Data"):
-        st.dataframe(fdf.head(500), use_container_width=True)
+        st.dataframe(fdf.head(500), width="stretch")
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -453,7 +453,7 @@ with tabs[1]:
         fig = px.histogram(x=probs_d, nbins=40, color_discrete_sequence=["#3b82f6"], template="plotly_dark", labels={"x":"Late Delivery Probability"})
         fig.add_vline(x=0.5, line_dash="dash", line_color="#f87171", annotation_text="Threshold")
         fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=0,r=0,t=10,b=0), height=300)
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
     with c2:
         st.markdown('<p class="sec-hdr">Late Risk by Shipping Mode</p>', unsafe_allow_html=True)
         if "Shipping Mode" in fdf_d.columns:
@@ -462,7 +462,7 @@ with tabs[1]:
                          color="Late_Risk_Probability", color_continuous_scale="RdYlGn_r",
                          template="plotly_dark")
             fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=0,r=0,t=10,b=0), height=300, coloraxis_showscale=False)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
 
     c3,c4 = st.columns(2)
     with c3:
@@ -473,7 +473,7 @@ with tabs[1]:
                          color="Late_Risk_Probability", color_continuous_scale="RdYlGn_r",
                          template="plotly_dark")
             fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=0,r=0,t=10,b=0), height=300, coloraxis_showscale=False)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
     with c4:
         st.markdown('<p class="sec-hdr">Risk Over Time</p>', unsafe_allow_html=True)
         if "order date (DateOrders)" in fdf_d.columns:
@@ -481,7 +481,7 @@ with tabs[1]:
             ts["order date (DateOrders)"] = ts["order date (DateOrders)"].astype(str)
             fig = px.line(ts, x="order date (DateOrders)", y="Late_Risk_Probability", color_discrete_sequence=["#f87171"], template="plotly_dark")
             fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=0,r=0,t=10,b=0), height=300)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
 
     st.markdown('<p class="sec-hdr">Feature Importance — Delivery Model</p>', unsafe_allow_html=True)
     fi = pd.DataFrame({"Feature": DELIVERY_FEATURES, "Importance": delivery_model.feature_importances_})
@@ -489,11 +489,11 @@ with tabs[1]:
     fig = px.bar(fi, x="Importance", y="Feature", orientation="h",
                  color="Importance", color_continuous_scale="Blues", template="plotly_dark")
     fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=0,r=0,t=10,b=0), height=420, coloraxis_showscale=False)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
     with st.expander("📋 Orders with Predictions"):
         show = [c for c in ["Order Id","Product Name","Shipping Mode","Market","Late_Risk_Probability","Predicted_Late_Risk"] if c in fdf_d.columns]
-        st.dataframe(fdf_d[show].sort_values("Late_Risk_Probability", ascending=False).head(300), use_container_width=True)
+        st.dataframe(fdf_d[show].sort_values("Late_Risk_Probability", ascending=False).head(300), width="stretch")
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -527,7 +527,7 @@ with tabs[2]:
         st.markdown('<p class="sec-hdr">Predicted Quantity Distribution</p>', unsafe_allow_html=True)
         fig = px.histogram(x=preds_q, nbins=30, color_discrete_sequence=["#3b82f6"], template="plotly_dark", labels={"x":"Predicted Quantity"})
         fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=0,r=0,t=10,b=0), height=300)
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
     with c2:
         if actual_col:
             st.markdown('<p class="sec-hdr">Actual vs Predicted</p>', unsafe_allow_html=True)
@@ -539,7 +539,7 @@ with tabs[2]:
             mx = max(fdf_q["Order Item Quantity"].max(), preds_q.max())
             fig.add_shape(type="line", x0=mn,y0=mn,x1=mx,y1=mx, line=dict(color="#f87171",dash="dash"))
             fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=0,r=0,t=10,b=0), height=300)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
 
     c3,c4 = st.columns(2)
     with c3:
@@ -549,7 +549,7 @@ with tabs[2]:
             fig = px.bar(grp, x="Category Name", y="Predicted_Quantity", color="Predicted_Quantity",
                          color_continuous_scale="Blues", template="plotly_dark")
             fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=0,r=0,t=10,b=0), height=300, coloraxis_showscale=False)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
     with c4:
         st.markdown('<p class="sec-hdr">Avg Demand by Market</p>', unsafe_allow_html=True)
         if "Market" in fdf_q.columns:
@@ -557,7 +557,7 @@ with tabs[2]:
             fig = px.bar(grp, x="Market", y="Predicted_Quantity", color="Predicted_Quantity",
                          color_continuous_scale="Blues", template="plotly_dark")
             fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=0,r=0,t=10,b=0), height=300, coloraxis_showscale=False)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
 
     st.markdown('<p class="sec-hdr">Predicted Demand Over Time</p>', unsafe_allow_html=True)
     if "order date (DateOrders)" in fdf_q.columns:
@@ -570,7 +570,7 @@ with tabs[2]:
             act["order date (DateOrders)"] = act["order date (DateOrders)"].astype(str)
             fig.add_trace(go.Scatter(x=act["order date (DateOrders)"], y=act["Order Item Quantity"], name="Actual", line=dict(color="#4ade80", dash="dash")))
         fig.update_layout(template="plotly_dark", paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=0,r=0,t=10,b=0), height=300)
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
     st.markdown('<p class="sec-hdr">Feature Importance — Demand Model</p>', unsafe_allow_html=True)
     fi2 = pd.DataFrame({"Feature": DEMAND_FEATURES, "Importance": demand_model.feature_importances_})
@@ -578,11 +578,11 @@ with tabs[2]:
     fig = px.bar(fi2, x="Importance", y="Feature", orientation="h",
                  color="Importance", color_continuous_scale="Blues", template="plotly_dark")
     fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=0,r=0,t=10,b=0), height=420, coloraxis_showscale=False)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
     with st.expander("📋 Orders with Demand Predictions"):
         show2 = [c for c in ["Order Id","Product Name","Category Name","Market","Order Item Quantity","Predicted_Quantity"] if c in fdf_q.columns]
-        st.dataframe(fdf_q[show2].head(300), use_container_width=True)
+        st.dataframe(fdf_q[show2].head(300), width="stretch")
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -682,7 +682,7 @@ with tabs[3]:
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    if st.button("🔮 Predict", use_container_width=True, type="primary"):
+    if st.button("🔮 Predict", width="stretch", type="primary"):
         inp = dict(
             shipping_mode=shipping_mode, days_real=days_real, days_scheduled=days_scheduled,
             order_status=order_status, order_type=order_type, benefit=benefit,
@@ -766,7 +766,7 @@ with tabs[3]:
             ))
             fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", font_color="#e2e8f0",
                               height=250, margin=dict(l=20,r=20,t=40,b=10))
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
 
         with g2:
             fig2 = go.Figure(go.Indicator(
@@ -786,7 +786,7 @@ with tabs[3]:
             ))
             fig2.update_layout(paper_bgcolor="rgba(0,0,0,0)", font_color="#e2e8f0",
                                height=250, margin=dict(l=20,r=20,t=40,b=10))
-            st.plotly_chart(fig2, use_container_width=True)
+            st.plotly_chart(fig2, width="stretch")
 
         # ── Exact feature values fed to each model ────────────────
         st.markdown("#### 🔬 Exact values passed to each model")
@@ -812,7 +812,7 @@ with tabs[3]:
                     f"{order_status} → {ORDER_STATUS_ENC[order_status]}",
                     benefit, profit_ratio,
                 ]
-            }), hide_index=True, use_container_width=True)
+            }), hide_index=True, width="stretch")
         with t2:
             st.markdown("**Demand Forecast Model inputs:**")
             st.dataframe(pd.DataFrame({
@@ -830,7 +830,7 @@ with tabs[3]:
                     region_avg_qty, hourly_access,
                     f"{customer_segment} → {SEGMENT_ENC[customer_segment]}",
                 ]
-            }), hide_index=True, use_container_width=True)
+            }), hide_index=True, width="stretch")
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -1121,7 +1121,7 @@ with tabs[4]:
 
         sm_summary["Recommended Action"] = sm_summary.apply(action_for_mode, axis=1)
         sm_summary = sm_summary[["Shipping Mode","Orders","Late_Risk_%","High_Risk_Count","Avg_Pred_Qty","Recommended Action"]]
-        st.dataframe(sm_summary, hide_index=True, use_container_width=True)
+        st.dataframe(sm_summary, hide_index=True, width="stretch")
 
     # ══════════════════════════════════════════════════════════════
     # SECTION 4 — ORDER-LEVEL PRIORITY TABLE
@@ -1145,7 +1145,7 @@ with tabs[4]:
 
     st.dataframe(
         priority[display_cols].sort_values("Urgency_Score", ascending=False).head(200),
-        hide_index=True, use_container_width=True
+        hide_index=True, width="stretch"
     )
 
     # ══════════════════════════════════════════════════════════════
@@ -1168,7 +1168,7 @@ with tabs[4]:
     fig.add_hline(y=QTY_LOW,   line_dash="dot",  line_color="#94a3b8", annotation_text="Low Demand")
     fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
                       margin=dict(l=0,r=0,t=20,b=0), height=420)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
     # ── Footer summary ────────────────────────────────────────────
     st.markdown("---")
